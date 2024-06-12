@@ -1,0 +1,3 @@
+[workspace]
+members = [ "stal-cli","stal-core"]
+resolver = "2"
