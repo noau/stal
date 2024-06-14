@@ -243,7 +243,7 @@ impl BayesianModel {
                     &probabilities[..40],
                     &probabilities[(probabilities.len() - 40)..],
                 ]
-                    .concat();
+                .concat();
             }
         }
         probabilities
@@ -252,6 +252,11 @@ impl BayesianModel {
 
 impl Display for BayesianModel {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Bayesian Model with {} authors and {} tokens.", self.authors.len(), self.total_token_count)
+        write!(
+            f,
+            "Bayesian Model with {} authors and {} tokens.",
+            self.authors.len(),
+            self.total_token_count
+        )
     }
 }
