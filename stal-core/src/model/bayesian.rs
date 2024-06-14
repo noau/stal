@@ -7,12 +7,6 @@ use serde::{Deserialize, Serialize};
 use text_splitter::TextSplitter;
 use thiserror::Error;
 
-#[derive(Debug, Serialize, Deserialize)]
-pub enum Language {
-    SimplifiedChinese,
-    English,
-}
-
 #[derive(Debug)]
 pub struct Predication {
     pub sentences_predicate: Vec<(usize, Vec<f32>)>,
@@ -45,7 +39,6 @@ pub enum BayesianLoadError {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct BayesianModel {
-    language: Language,
     authors: Vec<String>,
     token_author_dict: HashMap<String, Vec<u32>>,
     author_token_count: Vec<u32>,
@@ -61,7 +54,7 @@ const MIN_RATING: f32 = 0.2;
 const MAX_RATING: f32 = 0.7;
 
 impl BayesianModel {
-    pub fn train(language: Language, dataset: Vec<(String, String)>) -> io::Result<Self> {
+    pub fn train(dataset: Vec<(String, String)>) -> io::Result<Self> {
         // Find all authors
         let author_dict = dataset
             .iter()
@@ -98,7 +91,6 @@ impl BayesianModel {
         let total_token_count = author_token_count.iter().sum::<u32>();
 
         Ok(Self {
-            language,
             authors,
             author_token_count,
             token_author_dict,
@@ -244,7 +236,7 @@ impl BayesianModel {
 
 #[cfg(test)]
 mod tests {
-    use super::{BayesianModel, Language};
+    use super::BayesianModel;
 
     #[test]
     fn test_() {
@@ -258,7 +250,7 @@ mod tests {
                 "D:\\BaiduNetdiskDownload\\御风而行.txt".to_string(),
             ),
         ];
-        let model = BayesianModel::train(Language::SimplifiedChinese, dataset).unwrap();
+        let model = BayesianModel::train(dataset).unwrap();
         const MODEL_PATH: &str = "output/model.postcard";
         model.save(MODEL_PATH).expect("Failed to save model.");
 
