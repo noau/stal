@@ -28,8 +28,8 @@ struct JsonDataset {
 }
 
 pub fn load_json_dataset<P>(dataset: P) -> Result<Vec<(String, String)>, DatasetLoadError>
-    where
-        P: AsRef<Path>,
+where
+    P: AsRef<Path>,
 {
     log::trace!("Read dataset json from: `{}`.", dataset.as_ref().display());
     let json = std::fs::read_to_string(dataset)?;
