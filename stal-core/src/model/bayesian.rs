@@ -227,37 +227,13 @@ impl BayesianModel {
             // Remove extreme ones if enough
             probabilities = probabilities[2..(probabilities.len() - 2)].to_vec();
             if probabilities.len() > 80 {
-                probabilities = [&probabilities[..40], &probabilities[(probabilities.len() - 40)..]].concat();
+                probabilities = [
+                    &probabilities[..40],
+                    &probabilities[(probabilities.len() - 40)..],
+                ]
+                .concat();
             }
         }
         probabilities
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::BayesianModel;
-
-    #[test]
-    fn test_() {
-        let dataset = vec![
-            (
-                "小和尚".to_string(),
-                "D:\\BaiduNetdiskDownload\\庙里有个小和尚.txt".to_string(),
-            ),
-            (
-                "御风".to_string(),
-                "D:\\BaiduNetdiskDownload\\御风而行.txt".to_string(),
-            ),
-        ];
-        let model = BayesianModel::train(dataset).unwrap();
-        const MODEL_PATH: &str = "output/model.postcard";
-        model.save(MODEL_PATH).expect("Failed to save model.");
-
-        let loaded = BayesianModel::load(MODEL_PATH).expect("Failed to load model.");
-        let s = "　　那小婴孩不过三四个月大，白白嫩嫩的可爱样子让讲究万物皆空的和尚们难得地兴奋起来。他偏偏不怕人，黑黝黝的大眼睛骨碌碌地转着，被无数只手轻轻地捏着小脸蛋也不哭，只是咧着小嘴傻呵呵地笑，只有被不小心捏痛了才扁扁嘴，转着小脑袋到处寻找老和尚。";
-        // let s = "男人头也不抬地说道。烈日炎炎下，哈利不安地动了动。太热了，哈利想道，特别是这个夏末。他汗湿的袍子罩在身上，厚重且潮湿，在微风下纹丝不动。哈利旁边站着一个戴着眼镜的矮小男人，留着修剪整齐的斑白胡须。出于某种原因男人似乎丝毫不受暑气的影响，他身着的象牙白袍给人带来阴凉的幻觉。";
-        let prediction = loaded.classify_text(s);
-        println!("{:#?}", prediction)
     }
 }
