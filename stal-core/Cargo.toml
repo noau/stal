@@ -5,10 +5,12 @@ edition = "2021"
 
 [dependencies]
 charabia = "0.8.11"
+fsio = "0.4.0"
 linfa = "0.7.0"
 linfa-bayes = { version = "0.7.0", features = ["serde"] }
 log = "0.4.21"
 ndarray = "0.15.6"
-postcard = "1.0.8"
+postcard = { version = "1.0.8", features = ["default", "alloc"] }
 serde = { version = "1.0.203", features = ["derive"] }
 text-splitter = "0.13.3"
+thiserror = "1.0.61"
