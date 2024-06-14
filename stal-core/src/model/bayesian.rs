@@ -1,4 +1,5 @@
 use std::collections::{HashMap, HashSet};
+use std::fmt::{Display, Formatter};
 use std::io;
 use std::path::Path;
 
@@ -38,15 +39,21 @@ pub enum BayesianLoadError {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+/// A smoothed naive bayes model for Stylish Analysis
 pub struct BayesianModel {
+    /// List of authors
     authors: Vec<String>,
+    /// Token count in each author's text(s) of each token
     token_author_dict: HashMap<String, Vec<u32>>,
+    /// Each author's total token count
     author_token_count: Vec<u32>,
+    /// Total token count used to train the model
     total_token_count: u32,
 }
 
 const MAX_SENTENCE_LENGTH: usize = 96;
 
+/// Rating of un-seen token
 const NO_TOKEN_RATING: f32 = 0.4;
 
 const MIN_RATING: f32 = 0.2;
@@ -54,18 +61,22 @@ const MIN_RATING: f32 = 0.2;
 const MAX_RATING: f32 = 0.7;
 
 impl BayesianModel {
+    /// Train the bayesian model using given dataset. The dataset consists of `String` pairs, where
+    /// the first is author, and the second is path to the text file. Must be `.txt` format of pure text.
     pub fn train(dataset: Vec<(String, String)>) -> io::Result<Self> {
-        // Find all authors
+        log::trace!("Find all authors.");
         let author_dict = dataset
             .iter()
             .map(|(author, _)| author.clone())
             .collect::<HashSet<_>>();
         let authors = author_dict.into_iter().collect::<Vec<_>>();
         let author_count = authors.len();
+        log::trace!("Contains {} authors in total.", author_count);
 
         // Find all words and their count in each author's texts
         let mut token_author_dict: HashMap<String, Vec<u32>> = HashMap::new();
         for (author, path) in dataset {
+            log::trace!("Indexing: ('{}', `{}`)", author, path);
             let author_index = authors.iter().position(|name| author.eq(name)).unwrap();
 
             let text = std::fs::read_to_string(path)?;
@@ -89,7 +100,7 @@ impl BayesianModel {
                         .collect::<Vec<_>>()
                 });
         let total_token_count = author_token_count.iter().sum::<u32>();
-
+        log::trace!("Contains {} tokens in total.", total_token_count);
         Ok(Self {
             authors,
             author_token_count,
@@ -205,6 +216,7 @@ impl BayesianModel {
             }
         }
 
+        // Adjust ratings non-linearly
         ratings
             .into_iter()
             .map(|probabilities| {
@@ -231,9 +243,15 @@ impl BayesianModel {
                     &probabilities[..40],
                     &probabilities[(probabilities.len() - 40)..],
                 ]
-                .concat();
+                    .concat();
             }
         }
         probabilities
+    }
+}
+
+impl Display for BayesianModel {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Bayesian Model with {} authors and {} tokens.", self.authors.len(), self.total_token_count)
     }
 }

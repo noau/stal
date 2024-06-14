@@ -28,10 +28,12 @@ struct JsonDataset {
 }
 
 pub fn load_json_dataset<P>(dataset: P) -> Result<Vec<(String, String)>, DatasetLoadError>
-where
-    P: AsRef<Path>,
+    where
+        P: AsRef<Path>,
 {
+    log::trace!("Read dataset json from: `{}`.", dataset.as_ref().display());
     let json = std::fs::read_to_string(dataset)?;
+    log::trace!("Parse dataset.");
     let json_dataset: Vec<JsonDataset> = serde_json::from_str(&json)?;
     let dataset = json_dataset
         .into_iter()
@@ -41,28 +43,32 @@ where
 }
 
 pub fn load_dir_dataset<P: AsRef<Path>>(dir: P) -> Result<Vec<(String, String)>, DatasetLoadError> {
+    log::trace!("Normalize path: `{}`.", dir.as_ref().display());
     let path = dir.as_ref().normalize()?;
 
     let mut dataset = vec![];
+    log::trace!("Iter all authors.");
     let mut authors = WalkDir::new(path).into_iter();
-    authors.next();
+    authors.next(); // Skip self
     for author_entry in authors {
         let entry = author_entry?;
-        log::debug!("Load Entry(Author): {:?}", entry.path());
+        log::trace!("Load Entry(Author): {:?}", entry.path());
         let author = entry
             .file_name()
             .to_str()
             .ok_or_else(|| DatasetLoadError::InvalidAuthorName(entry.path().to_path_buf()))?
             .to_string();
+        log::trace!("Iter all texts of '{}'.", author);
         let mut texts = WalkDir::new(entry.path()).into_iter();
-        texts.next();
+        texts.next(); // Skip self
         for text in texts {
             let text = text?;
-            log::debug!("Load Text: {:?}", text.path());
+            log::trace!("Load Text: {:?}", text.path());
             let path = text.path().to_path_buf();
             if let Some(ext) = path.extension() {
                 if ext == "txt" {
                     if let Some(path) = path.to_str() {
+                        log::trace!("Find text: `{}`.", path);
                         dataset.push((author.clone(), path.to_string()));
                     } else {
                         return Err(DatasetLoadError::InvalidFileName(path));
